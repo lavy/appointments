@@ -29,6 +29,29 @@ class AppointmentController extends Controller
         ]);
     }
 
+    public function store(Request $request)
+    {
+        $business = Auth::user()?->business;
+
+        if (!$business) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'customer_name' => ['required', 'string', 'max:255'],
+            'customer_phone' => ['required', 'string', 'max:50'],
+            'date' => ['required', 'date'],
+            'time' => ['required', 'date_format:H:i'],
+        ]);
+
+        $business->appointments()->create([
+            ...$data,
+            'status' => 'pending',
+        ]);
+
+        return Redirect::back()->with('status', 'Turno creado');
+    }
+
     public function updateStatus(Request $request, Appointment $appointment)
     {
         $business = Auth::user()?->business;

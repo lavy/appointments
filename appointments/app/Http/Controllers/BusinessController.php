@@ -18,6 +18,7 @@ class BusinessController extends Controller
         ]);
 
         $data['user_id'] = Auth::id();
+        $data['timezone'] ??= 'America/Caracas';
 
         $business = Business::create($data);
 
@@ -36,6 +37,8 @@ class BusinessController extends Controller
             'address' => ['nullable', 'string', 'max:255'],
             'timezone' => ['nullable', 'string', 'max:100'],
         ]);
+
+        $data['timezone'] ??= 'America/Caracas';
 
         $business->update($data);
 

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\BusinessController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,7 +24,10 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [AppointmentController::class, 'index'])->name('dashboard');
+    Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
     Route::post('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus']);
+    Route::post('/business', [BusinessController::class, 'store'])->name('business.store');
+    Route::put('/business/{business}', [BusinessController::class, 'update'])->name('business.update');
 });
 
 Route::redirect('/', '/dashboard');
