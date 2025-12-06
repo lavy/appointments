@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Services\AppointmentWorkflow;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,10 @@ use Illuminate\Support\Facades\View;
 
 class AppointmentController extends Controller
 {
+    public function __construct(private AppointmentWorkflow $workflow)
+    {
+    }
+
     public function index(Request $request)
     {
         $business = Auth::user()?->business;
@@ -47,11 +52,14 @@ class AppointmentController extends Controller
             'customer_phone' => ['required', 'string', 'max:50'],
             'date' => ['required', 'date'],
             'time' => ['required', 'date_format:H:i'],
+            'status' => ['nullable', 'in:' . implode(',', Appointment::STATUSES)],
         ]);
+
+        $status = $data['status'] ?? 'confirmed';
 
         $business->appointments()->create([
             ...$data,
-            'status' => 'pending',
+            'status' => $status,
             'contact_channel' => 'panel',
             'contact_identifier' => $data['customer_phone'],
             'language' => 'es',
@@ -72,7 +80,13 @@ class AppointmentController extends Controller
             'status' => ['required', 'in:' . implode(',', Appointment::STATUSES)],
         ]);
 
-        $appointment->update($data);
+        if ($data['status'] === 'confirmed') {
+            $this->workflow->approve($appointment, Auth::id());
+        } elseif ($data['status'] === 'expired' && $appointment->status === 'pending_review') {
+            $this->workflow->reject($appointment, Auth::id());
+        } else {
+            $appointment->update($data);
+        }
 
         return Redirect::back()->with('status', 'Estado actualizado');
     }

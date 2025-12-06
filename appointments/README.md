@@ -26,7 +26,7 @@ Laravel is accessible, powerful, and provides tools required for large, robust a
 Primer corte funcional siguiendo la visión de “WhatsApp primero”. El flujo completo es:
 
 - WhatsApp Cloud API envía mensajes entrantes al webhook `POST /api/whatsapp/webhook`.
-- Laravel identifica el cliente y lo guía por un flujo lineal: menú (1 = pedir turno), pedir fecha, mostrar horarios disponibles numerados para que el usuario elija, verificar disponibilidad, crear la cita y confirmar por WhatsApp.
+- Laravel identifica el cliente y lo guía por un flujo lineal: menú (1 = pedir turno), pedir fecha, mostrar horarios disponibles numerados para que el usuario elija, verificar disponibilidad y dejar el turno **pre-reservado**. Se envían las instrucciones de pago y se exige subir un comprobante en el mismo chat para que el admin lo apruebe antes de confirmar.
 - El negocio puede ver y actualizar el estado de los turnos del día en `/dashboard`.
 - El panel permite filtrar turnos por cualquier fecha, mostrando por defecto los turnos del día en curso.
 
@@ -51,23 +51,28 @@ Primer corte funcional siguiendo la visión de “WhatsApp primero”. El flujo 
    ```bash
    php artisan migrate --seed
    ```
-4. Levanta la aplicación web y el frontend de Blade/Tailwind:
+4. Publica los archivos estáticos para descargar comprobantes:
+   ```bash
+   php artisan storage:link
+   ```
+5. Levanta la aplicación web y el frontend de Blade/Tailwind:
    ```bash
    php artisan serve   # expone el panel y los webhooks
    npm run dev         # recompila assets para el login y dashboard
    ```
-5. Programa recordatorios diarios y, si lo prefieres, ejecútalos manualmente:
+6. Programa recordatorios diarios, caducidad de pre-reservas y ejecútalos manualmente si lo prefieres:
    ```bash
    php artisan schedule:run               # úsalo en cron: * * * * * php artisan schedule:run
    php artisan appointments:send-reminders # para forzar recordatorios en el momento
+   php artisan appointments:expire-pre-reservations # libera slots vencidos
    ```
-6. Expón el webhook en Meta Developers apuntando a `https://tu-dominio.com/api/whatsapp/webhook` con el mismo `WHATSAPP_VERIFY_TOKEN`.
-7. Inicia sesión en `/login` con las credenciales sembradas (`admin@example.com` / `password`) y visita `/dashboard` para ver y actualizar los turnos del día (el filtro siempre arranca en la fecha actual).
+7. Expón el webhook en Meta Developers apuntando a `https://tu-dominio.com/api/whatsapp/webhook` con el mismo `WHATSAPP_VERIFY_TOKEN`.
+8. Inicia sesión en `/login` con las credenciales sembradas (`admin@example.com` / `password`) y visita `/dashboard` para ver y actualizar los turnos del día (el filtro siempre arranca en la fecha actual).
 
 ### Flujo conversacional mínimo (Cloud API)
 
 - Cualquier mensaje: muestra menú: “1️⃣ para pedir un turno / 2️⃣ ver o cancelar”. El bot responde automáticamente en español, inglés o portugués según el idioma detectado en el mensaje.
-- “1” → pide fecha (AAAA-MM-DD) → pide hora (HH:MM) → crea cita si el slot está libre.
+- “1” → pide fecha (AAAA-MM-DD) → pide hora (HH:MM) → pre-reserva el horario si está libre y envía instrucciones de pago. El usuario debe adjuntar un comprobante (imagen/PDF) en el chat para pasar a revisión.
 - “2” → responde que el panel web es la vía actual para ver/cancelar.
 
 ### Telegram y Facebook Messenger
@@ -79,7 +84,8 @@ Primer corte funcional siguiendo la visión de “WhatsApp primero”. El flujo 
 
 - Ruta: `/dashboard` (requiere middleware `auth`).
 - Lista los turnos del día del negocio asociado al usuario y permite filtrarlos por fecha.
-- Selector para cambiar estado: pending, confirmed, completed o canceled.
+- Selector para cambiar estado: pre_reserved, pending_review, confirmed, completed, canceled o expired.
+- Columna para ver el comprobante subido y botones rápidos para aprobar/rechazar pagos cuando el turno está en `pending_review`.
 
 ### Recordatorios automáticos
 

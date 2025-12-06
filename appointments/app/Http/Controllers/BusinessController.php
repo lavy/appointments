@@ -15,6 +15,7 @@ class BusinessController extends Controller
             'phone' => ['required', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:255'],
             'timezone' => ['nullable', 'string', 'max:100'],
+            'payment_instructions' => ['nullable', 'string'],
         ]);
 
         $data['user_id'] = Auth::id();
@@ -36,6 +37,7 @@ class BusinessController extends Controller
             'phone' => ['required', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:255'],
             'timezone' => ['nullable', 'string', 'max:100'],
+            'payment_instructions' => ['nullable', 'string'],
         ]);
 
         $data['timezone'] ??= 'America/Caracas';

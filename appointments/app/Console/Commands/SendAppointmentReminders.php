@@ -34,7 +34,7 @@ class SendAppointmentReminders extends Command
 
             $appointments = $business->appointments()
                 ->whereDate('date', $targetDate)
-                ->whereIn('status', ['pending', 'confirmed'])
+                ->whereIn('status', ['confirmed'])
                 ->whereNull('reminder_sent_at')
                 ->get();
 

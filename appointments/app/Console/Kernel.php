@@ -13,6 +13,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('appointments:send-reminders')->daily();
+        $schedule->command('appointments:expire-pre-reservations')->everyTenMinutes();
     }
 
     /**

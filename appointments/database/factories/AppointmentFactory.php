@@ -23,10 +23,11 @@ class AppointmentFactory extends Factory
             'customer_phone' => fake()->phoneNumber(),
             'date' => now()->toDateString(),
             'time' => $time,
-            'status' => 'pending',
+            'status' => 'confirmed',
             'contact_channel' => 'whatsapp',
             'contact_identifier' => fake()->e164PhoneNumber(),
             'language' => 'es',
+            'pre_reserved_until' => now()->addMinutes(30),
         ];
     }
 }

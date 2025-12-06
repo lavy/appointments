@@ -15,6 +15,7 @@ class Business extends Model
         'phone',
         'address',
         'timezone',
+        'payment_instructions',
     ];
 
     public function user()

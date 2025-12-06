@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Business;
 use App\Models\ConversationState;
 use App\Services\ConversationFlowService;
+use App\Services\PaymentProofService;
 use App\Services\WhatsappService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -13,7 +14,8 @@ class WhatsappWebhookController extends Controller
 {
     public function __construct(
         private WhatsappService $whatsappService,
-        private ConversationFlowService $conversationFlow
+        private ConversationFlowService $conversationFlow,
+        private PaymentProofService $paymentProofs
     )
     {
     }
@@ -36,6 +38,7 @@ class WhatsappWebhookController extends Controller
         [$from, $text, $displayName] = $this->extractMessage($payload);
 
         if (!$from || !$text) {
+            $this->handleMedia($payload, $from ?? '');
             return response()->json(['status' => 'ignored']);
         }
 
@@ -50,6 +53,10 @@ class WhatsappWebhookController extends Controller
             ['business_id' => $business->id, 'customer_phone' => $from],
             ['current_step' => 'welcome', 'payload' => []]
         );
+
+        if ($this->handleMedia($payload, $from)) {
+            return response()->json(['status' => 'ok']);
+        }
 
         $response = $this->conversationFlow->respond($business, $state, $text, $displayName, 'whatsapp');
 
@@ -74,6 +81,34 @@ class WhatsappWebhookController extends Controller
         $displayName = $changes['contacts'][0]['profile']['name'] ?? 'Cliente';
 
         return [$from, trim($text), $displayName];
+    }
+
+    private function handleMedia(array $payload, string $from): bool
+    {
+        $changes = $payload['entry'][0]['changes'][0]['value'] ?? null;
+        $messages = $changes['messages'][0] ?? null;
+
+        if (!$messages || !isset($messages['type']) || !in_array($messages['type'], ['image', 'document'], true)) {
+            return false;
+        }
+
+        $business = Business::first();
+
+        if (!$business) {
+            return false;
+        }
+
+        $language = $this->paymentProofs->handleWhatsappProof($messages, $from);
+
+        if ($language) {
+            ConversationState::where('business_id', $business->id)
+                ->where('customer_phone', $from)
+                ->update(['current_step' => 'welcome', 'payload' => []]);
+            $this->whatsappService->sendMessage($from, $this->conversationFlow->paymentReceivedMessage($business, $language));
+            return true;
+        }
+
+        return false;
     }
 
 }

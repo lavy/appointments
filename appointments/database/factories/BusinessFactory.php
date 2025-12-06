@@ -21,6 +21,7 @@ class BusinessFactory extends Factory
             'phone' => fake()->phoneNumber(),
             'address' => fake()->address(),
             'timezone' => 'America/Caracas',
+            'payment_instructions' => 'Envía tu pago y comprobante para asegurar el turno.',
         ];
     }
 }

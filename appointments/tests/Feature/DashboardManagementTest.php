@@ -41,7 +41,7 @@ class DashboardManagementTest extends TestCase
 
         $this->assertNotNull($appointment);
         $this->assertEquals($business->id, $appointment->business_id);
-        $this->assertEquals('pending', $appointment->status);
+        $this->assertEquals('confirmed', $appointment->status);
         $this->assertEquals('panel', $appointment->contact_channel);
     }
 
@@ -73,7 +73,7 @@ class DashboardManagementTest extends TestCase
 
         $business = Business::factory()->for($businessOwner)->create();
         $appointment = Appointment::factory()->for($business)->create([
-            'status' => 'pending',
+            'status' => 'pending_review',
         ]);
 
         $this->actingAs($otherUser)
@@ -82,6 +82,6 @@ class DashboardManagementTest extends TestCase
             ])
             ->assertStatus(403);
 
-        $this->assertEquals('pending', $appointment->fresh()->status);
+        $this->assertEquals('pending_review', $appointment->fresh()->status);
     }
 }

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css">
 </head>
 <body class="bg-gray-50 text-gray-900">
+    @php use Illuminate\Support\Facades\Storage; @endphp
     <div class="max-w-5xl mx-auto py-10 px-6">
         <div class="mb-8 flex items-start justify-between gap-4">
             <div>
@@ -68,6 +69,10 @@
                             <label class="block text-sm font-medium text-gray-700">Zona horaria</label>
                             <input name="timezone" value="{{ old('timezone', $business->timezone ?? 'America/Caracas') }}" class="mt-1 w-full border-gray-300 rounded">
                         </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Instrucciones de pago (se muestran al cliente)</label>
+                            <textarea name="payment_instructions" class="mt-1 w-full border-gray-300 rounded" rows="3">{{ old('payment_instructions', $business->payment_instructions ?? '') }}</textarea>
+                        </div>
                         <div class="flex justify-end">
                             <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
                                 {{ $business ? 'Actualizar negocio' : 'Crear negocio' }}
@@ -98,6 +103,16 @@
                             <label class="block text-sm font-medium text-gray-700">Hora</label>
                             <input type="time" name="time" value="{{ old('time', now()->format('H:i')) }}" class="mt-1 w-full border-gray-300 rounded" required>
                         </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Estado</label>
+                        <select name="status" class="mt-1 w-full border-gray-300 rounded">
+                            @foreach(\App\Models\Appointment::STATUSES as $status)
+                                <option value="{{ $status }}" @selected(old('status') === $status || (!old('status') && $status === 'confirmed'))>
+                                    {{ ucfirst($status) }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="flex justify-end">
                         <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Guardar turno</button>
@@ -131,6 +146,8 @@
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Cliente</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Teléfono</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Comprobante</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -152,10 +169,33 @@
                                     </select>
                                 </form>
                             </td>
+                            <td class="px-4 py-3 text-sm">
+                                @if($appointment->payment_proof_path)
+                                    <a class="text-indigo-600 underline" href="{{ Storage::url($appointment->payment_proof_path) }}" target="_blank">Ver comprobante</a>
+                                @else
+                                    <span class="text-gray-500">No adjunto</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-sm space-x-2">
+                                @if($appointment->status === 'pending_review')
+                                    <form class="inline" method="POST" action="/appointments/{{ $appointment->id }}/status">
+                                        @csrf
+                                        <input type="hidden" name="status" value="confirmed">
+                                        <button class="px-3 py-1 bg-green-600 text-white rounded">Aprobar pago</button>
+                                    </form>
+                                    <form class="inline" method="POST" action="/appointments/{{ $appointment->id }}/status">
+                                        @csrf
+                                        <input type="hidden" name="status" value="expired">
+                                        <button class="px-3 py-1 bg-red-600 text-white rounded">Rechazar</button>
+                                    </form>
+                                @else
+                                    <span class="text-gray-500">-</span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-5 text-center text-gray-500">No hay turnos para la fecha seleccionada.</td>
+                            <td colspan="7" class="px-4 py-5 text-center text-gray-500">No hay turnos para la fecha seleccionada.</td>
                         </tr>
                     @endforelse
                 </tbody>
