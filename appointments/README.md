@@ -1,3 +1,85 @@
+# Venezuela Tecnológica – WhatsApp Bot (Laravel)
+
+Este repositorio contiene el proyecto Laravel en `appointments/`. Para instalar dependencias de Node o PHP debes entrar a esa carpeta, porque ahí es donde viven los archivos `package.json` y `composer.json`.
+
+## Arranque rápido del bot de WhatsApp
+1. Ve al directorio del proyecto Laravel:
+   ```bash
+   cd appointments
+   ```
+2. Instala las dependencias de Node en esa ruta (si corres `npm install` fuera de esta carpeta verás el error `ENOENT: no such file or directory, open .../package.json`).
+   ```bash
+   npm install
+   ```
+3. Inicia el bot y escanea el QR que aparece en la terminal:
+   ```bash
+   npm run bot:whatsapp
+   ```
+4. La sesión se guarda en `storage/whatsapp/` dentro de la carpeta `appointments/`. Si necesitas reiniciar el enlace, borra el contenido de ese directorio y vuelve a ejecutar el paso anterior.
+
+## Estructura del repo
+- `appointments/`: código Laravel y el bot de WhatsApp.
+- `README.md` (este archivo): notas rápidas para ubicar la carpeta correcta al instalar y ejecutar el bot.
+
+Si recibes un error similar al de la captura (`ENOENT` al buscar `package.json`), verifica que estés ejecutando los comandos desde `appointments/`.
+appointments/.env.example
++4
+-0
+
+@@ -15,45 +15,49 @@ DB_DATABASE=laravel
+DB_USERNAME=root
+DB_PASSWORD=
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+
+MEMCACHED_HOST=127.0.0.1
+
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+MAIL_MAILER=smtp
+MAIL_HOST=mailpit
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+
+WHATSAPP_VERIFY_TOKEN=
+WHATSAPP_TOKEN=
+WHATSAPP_PHONE_NUMBER_ID=
+
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=
+AWS_USE_PATH_STYLE_ENDPOINT=false
+
+PUSHER_APP_ID=
+PUSHER_APP_KEY=
+PUSHER_APP_SECRET=
+PUSHER_HOST=
+PUSHER_PORT=443
+PUSHER_SCHEME=https
+PUSHER_APP_CLUSTER=mt1
+
+VITE_APP_NAME="${APP_NAME}"
+VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+VITE_PUSHER_HOST="${PUSHER_HOST}"
+VITE_PUSHER_PORT="${PUSHER_PORT}"
+VITE_PUSHER_SCHEME="${PUSHER_SCHEME}"
+VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+appointments/README.md
++51
+-0
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
@@ -97,21 +179,3 @@ We would like to extend our thanks to the following sponsors for funding Laravel
 - **[Jump24](https://jump24.co.uk)**
 - **[Redberry](https://redberry.international/laravel/)**
 - **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
