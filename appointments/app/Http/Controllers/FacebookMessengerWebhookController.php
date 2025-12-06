@@ -5,22 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Business;
 use App\Models\ConversationState;
 use App\Services\ConversationFlowService;
-use App\Services\WhatsappService;
+use App\Services\MessengerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class WhatsappWebhookController extends Controller
+class FacebookMessengerWebhookController extends Controller
 {
     public function __construct(
-        private WhatsappService $whatsappService,
+        private MessengerService $messengerService,
         private ConversationFlowService $conversationFlow
-    )
-    {
+    ) {
     }
 
     public function verify(Request $request)
     {
-        $verifyToken = config('services.whatsapp.verify_token');
+        $verifyToken = config('services.messenger.verify_token');
 
         if ($request->get('hub_verify_token') === $verifyToken) {
             return $request->get('hub_challenge');
@@ -32,48 +31,38 @@ class WhatsappWebhookController extends Controller
     public function handle(Request $request)
     {
         $payload = $request->all();
+        $messaging = $payload['entry'][0]['messaging'][0] ?? null;
 
-        [$from, $text, $displayName] = $this->extractMessage($payload);
+        if (!$messaging || !isset($messaging['sender']['id'])) {
+            return response()->json(['status' => 'ignored']);
+        }
 
-        if (!$from || !$text) {
+        $senderId = (string) $messaging['sender']['id'];
+        $text = trim($messaging['message']['text'] ?? '');
+        $displayName = $messaging['sender']['name'] ?? 'Cliente';
+
+        if ($text === '') {
             return response()->json(['status' => 'ignored']);
         }
 
         $business = Business::first();
 
         if (!$business) {
-            Log::warning('No business configured to handle WhatsApp messages');
+            Log::warning('No business configured to handle Messenger messages');
             return response()->json(['status' => 'no_business']);
         }
 
         $state = ConversationState::firstOrCreate(
-            ['business_id' => $business->id, 'customer_phone' => $from],
+            ['business_id' => $business->id, 'customer_phone' => $senderId],
             ['current_step' => 'welcome', 'payload' => []]
         );
 
         $response = $this->conversationFlow->respond($business, $state, $text, $displayName);
 
         if ($response) {
-            $this->whatsappService->sendMessage($from, $response);
+            $this->messengerService->sendMessage($senderId, $response);
         }
 
         return response()->json(['status' => 'ok']);
     }
-
-    private function extractMessage(array $payload): array
-    {
-        $changes = $payload['entry'][0]['changes'][0]['value'] ?? null;
-        $messages = $changes['messages'][0] ?? null;
-
-        if (!$messages) {
-            return [null, null, null];
-        }
-
-        $from = $messages['from'] ?? null;
-        $text = $messages['text']['body'] ?? '';
-        $displayName = $changes['contacts'][0]['profile']['name'] ?? 'Cliente';
-
-        return [$from, trim($text), $displayName];
-    }
-
 }

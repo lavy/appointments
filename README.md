@@ -17,6 +17,12 @@ Este repositorio contiene el proyecto Laravel en `appointments/`. Para instalar 
    ```
 4. La sesión se guarda en `storage/whatsapp/` dentro de la carpeta `appointments/`. Si necesitas reiniciar el enlace, borra el contenido de ese directorio y vuelve a ejecutar el paso anterior.
 
+## Webhooks HTTP (Cloud API / Telegram / Messenger)
+
+- WhatsApp Cloud: configura el verify token y apunta a `POST /api/whatsapp/webhook`.
+- Telegram: define `TELEGRAM_BOT_TOKEN` y usa `POST /api/telegram/webhook` con el webhook del bot.
+- Facebook Messenger: define `MESSENGER_VERIFY_TOKEN`, `MESSENGER_PAGE_ACCESS_TOKEN` y `MESSENGER_PAGE_ID`; Meta validará `GET /api/messenger/webhook` y enviará mensajes a `POST /api/messenger/webhook`.
+
 ## Estructura del repo
 - `appointments/`: código Laravel y el bot de WhatsApp.
 - `README.md` (este archivo): notas rápidas para ubicar la carpeta correcta al instalar y ejecutar el bot.

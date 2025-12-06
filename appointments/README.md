@@ -35,6 +35,8 @@ Primer corte funcional siguiendo la visión de “WhatsApp primero”. El flujo 
    - `WHATSAPP_VERIFY_TOKEN`
    - `WHATSAPP_TOKEN`
    - `WHATSAPP_PHONE_NUMBER_ID`
+   - (opcional) `TELEGRAM_BOT_TOKEN` para responder también por Telegram en `POST /api/telegram/webhook`
+   - (opcional) `MESSENGER_VERIFY_TOKEN`, `MESSENGER_PAGE_ACCESS_TOKEN` y `MESSENGER_PAGE_ID` si quieres exponer `POST /api/messenger/webhook` para Facebook Messenger
 2. Ejecuta migraciones y seed (crea usuario admin@example.com / password y un negocio de prueba “Venezuela Tecnológica”):
    ```bash
    php artisan migrate --seed
@@ -47,6 +49,11 @@ Primer corte funcional siguiendo la visión de “WhatsApp primero”. El flujo 
 - Cualquier mensaje: muestra menú: “1️⃣ para pedir un turno / 2️⃣ ver o cancelar”. El bot responde automáticamente en español, inglés o portugués según el idioma detectado en el mensaje.
 - “1” → pide fecha (AAAA-MM-DD) → pide hora (HH:MM) → crea cita si el slot está libre.
 - “2” → responde que el panel web es la vía actual para ver/cancelar.
+
+### Telegram y Facebook Messenger
+
+- Si configuraste `TELEGRAM_BOT_TOKEN`, puedes apuntar el webhook del bot a `POST /api/telegram/webhook` y recibirás el mismo flujo conversacional y creación de turnos.
+- Para Messenger, Meta validará `GET /api/messenger/webhook` con `MESSENGER_VERIFY_TOKEN` y enviará mensajes a `POST /api/messenger/webhook`; las respuestas usan la misma lógica multilenguaje.
 
 ### Panel web
 
