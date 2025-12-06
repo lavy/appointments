@@ -24,7 +24,7 @@ client.on('qr', (qr) => {
 });
 
 client.on('ready', () => {
-    console.log('🤖 Bot de WhatsApp listo. Comandos: "hola", "cita", "ayuda".');
+    console.log('🤖 Bot de WhatsApp listo.');
 });
 
 client.on('auth_failure', (message) => {
