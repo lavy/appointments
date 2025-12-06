@@ -24,6 +24,9 @@ class AppointmentFactory extends Factory
             'date' => now()->toDateString(),
             'time' => $time,
             'status' => 'pending',
+            'contact_channel' => 'whatsapp',
+            'contact_identifier' => fake()->e164PhoneNumber(),
+            'language' => 'es',
         ];
     }
 }

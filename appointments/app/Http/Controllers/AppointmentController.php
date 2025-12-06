@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -10,15 +11,18 @@ use Illuminate\Support\Facades\View;
 
 class AppointmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $business = Auth::user()?->business;
 
         $appointments = collect();
+        $selectedDate = null;
 
         if ($business) {
+            $selectedDate = $this->resolveDateFilter($request->query('date'), $business->timezone);
+
             $appointments = $business->appointments()
-                ->whereDate('date', today($business->timezone))
+                ->whereDate('date', $selectedDate->toDateString())
                 ->orderBy('time')
                 ->get();
         }
@@ -26,6 +30,7 @@ class AppointmentController extends Controller
         return View::make('dashboard', [
             'appointments' => $appointments,
             'business' => $business,
+            'selectedDate' => $selectedDate,
         ]);
     }
 
@@ -47,6 +52,9 @@ class AppointmentController extends Controller
         $business->appointments()->create([
             ...$data,
             'status' => 'pending',
+            'contact_channel' => 'panel',
+            'contact_identifier' => $data['customer_phone'],
+            'language' => 'es',
         ]);
 
         return Redirect::back()->with('status', 'Turno creado');
@@ -67,5 +75,18 @@ class AppointmentController extends Controller
         $appointment->update($data);
 
         return Redirect::back()->with('status', 'Estado actualizado');
+    }
+
+    private function resolveDateFilter(?string $date, string $timezone): Carbon
+    {
+        if (!$date) {
+            return today($timezone);
+        }
+
+        try {
+            return Carbon::createFromFormat('Y-m-d', $date, $timezone)->startOfDay();
+        } catch (\Exception) {
+            return today($timezone);
+        }
     }
 }

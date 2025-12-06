@@ -46,7 +46,7 @@ class TelegramWebhookController extends Controller
             ['current_step' => 'welcome', 'payload' => []]
         );
 
-        $response = $this->conversationFlow->respond($business, $state, $text, $displayName);
+        $response = $this->conversationFlow->respond($business, $state, $text, $displayName, 'telegram');
 
         if ($response) {
             $this->telegramService->sendMessage($chatId, $response);

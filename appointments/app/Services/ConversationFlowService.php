@@ -63,7 +63,7 @@ class ConversationFlowService
         'es' => ['2', 'estado', 'cancelar'],
     ];
 
-    public function respond(Business $business, ConversationState $state, string $text, string $displayName): ?string
+    public function respond(Business $business, ConversationState $state, string $text, string $displayName, string $channel): ?string
     {
         $normalized = mb_strtolower($text);
         $language = $this->detectLanguage($normalized);
@@ -73,7 +73,7 @@ class ConversationFlowService
         }
 
         if ($state->current_step === 'awaiting_time') {
-            return $this->handleTimeStep($business, $state, $normalized, $displayName, $language);
+            return $this->handleTimeStep($business, $state, $normalized, $displayName, $language, $channel);
         }
 
         if ($this->containsKeyword($normalized, $this->startKeywords[$language])) {
@@ -106,7 +106,7 @@ class ConversationFlowService
         return $this->message('ask_time', $language, $business->name);
     }
 
-    private function handleTimeStep(Business $business, ConversationState $state, string $text, string $displayName, string $language): string
+    private function handleTimeStep(Business $business, ConversationState $state, string $text, string $displayName, string $language, string $channel): string
     {
         if (!$this->isValidTime($text)) {
             return $this->message('time_invalid', $language, $business->name);
@@ -136,6 +136,9 @@ class ConversationFlowService
             'date' => $date,
             'time' => $text,
             'status' => 'pending',
+            'contact_channel' => $channel,
+            'contact_identifier' => $state->customer_phone,
+            'language' => $language,
         ]);
 
         $state->update([

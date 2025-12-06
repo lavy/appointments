@@ -18,11 +18,16 @@ class Appointment extends Model
         'date',
         'time',
         'status',
+        'contact_channel',
+        'contact_identifier',
+        'language',
+        'reminder_sent_at',
     ];
 
     protected $casts = [
         'date' => 'date',
         'time' => 'datetime:H:i',
+        'reminder_sent_at' => 'datetime',
     ];
 
     public function business()

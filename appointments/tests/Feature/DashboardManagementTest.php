@@ -42,6 +42,28 @@ class DashboardManagementTest extends TestCase
         $this->assertNotNull($appointment);
         $this->assertEquals($business->id, $appointment->business_id);
         $this->assertEquals('pending', $appointment->status);
+        $this->assertEquals('panel', $appointment->contact_channel);
+    }
+
+    public function test_dashboard_filters_appointments_by_date(): void
+    {
+        $user = User::factory()->create();
+        $business = Business::factory()->for($user)->create(['timezone' => 'America/Caracas']);
+
+        $today = today('America/Caracas');
+
+        Appointment::factory()->for($business)->create(['date' => $today->toDateString(), 'time' => '09:00']);
+        Appointment::factory()->for($business)->create(['date' => $today->copy()->addDay()->toDateString(), 'time' => '10:00']);
+
+        $this->actingAs($user)
+            ->get('/dashboard')
+            ->assertSee($today->format('Y-m-d'))
+            ->assertDontSee($today->copy()->addDay()->format('Y-m-d'));
+
+        $this->actingAs($user)
+            ->get('/dashboard?date=' . $today->copy()->addDay()->format('Y-m-d'))
+            ->assertSee($today->copy()->addDay()->format('Y-m-d'))
+            ->assertDontSee($today->format('Y-m-d'));
     }
 
     public function test_user_cannot_update_other_business_appointment(): void

@@ -106,6 +106,22 @@
             </div>
         </div>
 
+        <div class="bg-white shadow rounded mb-3 p-4 flex items-end gap-4">
+            <form method="GET" action="{{ route('dashboard') }}" class="flex items-end gap-3 flex-wrap">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Filtrar por fecha</label>
+                    <input type="date" name="date" value="{{ optional($selectedDate)->format('Y-m-d') }}" class="mt-1 border-gray-300 rounded" required>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Ver turnos</button>
+                    <a href="{{ route('dashboard') }}" class="px-4 py-2 bg-gray-100 text-gray-800 rounded border border-gray-300">Hoy</a>
+                </div>
+            </form>
+            @if($selectedDate)
+                <div class="ml-auto text-sm text-gray-600">Mostrando turnos para {{ $selectedDate->format('Y-m-d') }}</div>
+            @endif
+        </div>
+
         <div class="overflow-x-auto bg-white shadow rounded">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-100">
@@ -139,7 +155,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-5 text-center text-gray-500">No hay turnos para hoy.</td>
+                            <td colspan="5" class="px-4 py-5 text-center text-gray-500">No hay turnos para la fecha seleccionada.</td>
                         </tr>
                     @endforelse
                 </tbody>

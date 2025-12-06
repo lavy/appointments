@@ -57,7 +57,7 @@ class FacebookMessengerWebhookController extends Controller
             ['current_step' => 'welcome', 'payload' => []]
         );
 
-        $response = $this->conversationFlow->respond($business, $state, $text, $displayName);
+        $response = $this->conversationFlow->respond($business, $state, $text, $displayName, 'messenger');
 
         if ($response) {
             $this->messengerService->sendMessage($senderId, $response);

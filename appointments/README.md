@@ -28,6 +28,7 @@ Primer corte funcional siguiendo la visión de “WhatsApp primero”. El flujo 
 - WhatsApp Cloud API envía mensajes entrantes al webhook `POST /api/whatsapp/webhook`.
 - Laravel identifica el cliente y lo guía por un flujo lineal: menú (1 = pedir turno), pedir fecha, pedir hora, verificar disponibilidad, crear la cita y confirmar por WhatsApp.
 - El negocio puede ver y actualizar el estado de los turnos del día en `/dashboard`.
+- El panel permite filtrar turnos por cualquier fecha, mostrando por defecto los turnos del día en curso.
 
 ### Configuración
 
@@ -58,8 +59,13 @@ Primer corte funcional siguiendo la visión de “WhatsApp primero”. El flujo 
 ### Panel web
 
 - Ruta: `/dashboard` (requiere middleware `auth`).
-- Lista los turnos del día del negocio asociado al usuario.
+- Lista los turnos del día del negocio asociado al usuario y permite filtrarlos por fecha.
 - Selector para cambiar estado: pending, confirmed, completed o canceled.
+
+### Recordatorios automáticos
+
+- Comando: `php artisan appointments:send-reminders` envía un recordatorio dos días antes por el mismo canal en el que se creó el turno (WhatsApp, Telegram o Messenger).
+- El comando está agendado para correr a diario en el scheduler de Laravel (`app/Console/Kernel.php`).
 
 ## Bot de WhatsApp (Venezuela Tecnológica)
 

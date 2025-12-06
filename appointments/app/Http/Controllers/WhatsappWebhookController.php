@@ -51,7 +51,7 @@ class WhatsappWebhookController extends Controller
             ['current_step' => 'welcome', 'payload' => []]
         );
 
-        $response = $this->conversationFlow->respond($business, $state, $text, $displayName);
+        $response = $this->conversationFlow->respond($business, $state, $text, $displayName, 'whatsapp');
 
         if ($response) {
             $this->whatsappService->sendMessage($from, $response);
