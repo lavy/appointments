@@ -26,7 +26,7 @@ Laravel is accessible, powerful, and provides tools required for large, robust a
 Primer corte funcional siguiendo la visión de “WhatsApp primero”. El flujo completo es:
 
 - WhatsApp Cloud API envía mensajes entrantes al webhook `POST /api/whatsapp/webhook`.
-- Laravel identifica el cliente y lo guía por un flujo lineal: menú (1 = pedir turno), pedir fecha, pedir hora, verificar disponibilidad, crear la cita y confirmar por WhatsApp.
+- Laravel identifica el cliente y lo guía por un flujo lineal: menú (1 = pedir turno), pedir fecha, mostrar horarios disponibles numerados para que el usuario elija, verificar disponibilidad, crear la cita y confirmar por WhatsApp.
 - El negocio puede ver y actualizar el estado de los turnos del día en `/dashboard`.
 - El panel permite filtrar turnos por cualquier fecha, mostrando por defecto los turnos del día en curso.
 

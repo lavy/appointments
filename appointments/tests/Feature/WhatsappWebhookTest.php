@@ -97,6 +97,41 @@ class WhatsappWebhookTest extends TestCase
         $this->assertStringContainsString('Olá, sou o assistente de agendamentos', $fakeService->messages[0]['text']);
     }
 
+    public function test_whatsapp_booking_lists_slots_and_accepts_number_selection(): void
+    {
+        $business = Business::factory()->create(['name' => 'Turnos360 Demo']);
+
+        $fakeService = new class extends WhatsappService {
+            public array $messages = [];
+
+            public function sendMessage(string $to, string $text): void
+            {
+                $this->messages[] = ['to' => $to, 'text' => $text];
+            }
+        };
+
+        $this->app->instance(WhatsappService::class, $fakeService);
+
+        $from = '+1111';
+        $date = now()->addDay()->toDateString();
+
+        $this->postJson('/api/whatsapp/webhook', $this->payload($from, '1'))->assertOk();
+        $this->postJson('/api/whatsapp/webhook', $this->payload($from, $date))->assertOk();
+        $this->postJson('/api/whatsapp/webhook', $this->payload($from, '1'))->assertOk();
+
+        $this->assertCount(3, $fakeService->messages);
+        $this->assertStringContainsString('¿Para qué día quieres el turno?', $fakeService->messages[0]['text']);
+        $this->assertStringContainsString('1) 09:00', $fakeService->messages[1]['text']);
+        $this->assertStringContainsString('09:00', $fakeService->messages[2]['text']);
+
+        $this->assertDatabaseHas('appointments', [
+            'business_id' => $business->id,
+            'date' => $date,
+            'time' => '09:00:00',
+            'customer_phone' => $from,
+        ]);
+    }
+
     private function payload(string $from, string $message): array
     {
         return [

@@ -13,34 +13,40 @@ class ConversationFlowService
         'es' => [
             'welcome' => "Hola, soy el asistente de turnos de :business.\nEscribe:\n1️⃣ para pedir un turno\n2️⃣ para ver/cancelar tu turno.",
             'ask_date' => '¿Para qué día quieres el turno? (formato: AAAA-MM-DD)',
-            'ask_time' => 'Perfecto. ¿En qué horario prefieres? Ej: 10:00, 10:30, 11:00…',
+            'ask_time_options' => "Horarios disponibles para :date:\n:options\nResponde con el número de la opción que prefieras.",
             'ask_status' => 'Para ver o cancelar un turno, responde con 1 y agenda un nuevo turno. Por ahora el panel web es la forma recomendada.',
             'date_invalid' => 'Formato de fecha inválido. Usa AAAA-MM-DD.',
             'time_invalid' => 'Hora inválida. Usa el formato HH:MM (24 horas).',
             'missing_date' => 'No tengo registrada la fecha. Responde 1 para iniciar de nuevo.',
             'slot_taken' => 'Ese horario ya está reservado. Prueba con otro horario o fecha.',
+            'no_slots' => 'No hay horarios disponibles para :date. Elige otro día.',
+            'invalid_option' => "Opción inválida. Elige un número de la lista.\n:options",
             'confirmed' => 'Listo, tu turno quedó reservado para el :date a las :time a nombre de :name.',
         ],
         'en' => [
             'welcome' => "Hi! I'm the booking assistant for :business.\nType:\n1️⃣ to book an appointment\n2️⃣ to view/cancel your appointment.",
             'ask_date' => 'Which day would you like? (format: YYYY-MM-DD)',
-            'ask_time' => 'Great. What time works for you? e.g., 10:00, 10:30, 11:00…',
+            'ask_time_options' => "Available times for :date:\n:options\nReply with the number of your preferred slot.",
             'ask_status' => 'To view or cancel an appointment, reply 1 and create a new booking. For now, use the web panel for status updates.',
             'date_invalid' => 'Invalid date format. Use YYYY-MM-DD.',
             'time_invalid' => 'Invalid time. Use HH:MM (24h).',
             'missing_date' => "I don't have the date saved. Reply 1 to start again.",
             'slot_taken' => 'That time is already booked. Try another time or day.',
+            'no_slots' => 'No available times for :date. Please pick another day.',
+            'invalid_option' => "Invalid option. Choose a number from the list.\n:options",
             'confirmed' => 'Done! Your appointment is booked for :date at :time under :name.',
         ],
         'pt' => [
             'welcome' => "Olá, sou o assistente de agendamentos de :business.\nDigite:\n1️⃣ para marcar um horário\n2️⃣ para ver/cancelar seu horário.",
             'ask_date' => 'Para qual dia você quer o horário? (formato: AAAA-MM-DD)',
-            'ask_time' => 'Perfeito. Qual horário prefere? Ex.: 10:00, 10:30, 11:00…',
+            'ask_time_options' => "Horários disponíveis para :date:\n:options\nResponda com o número da opção que preferir.",
             'ask_status' => 'Para ver ou cancelar um horário, responda 1 e crie um novo agendamento. Por enquanto, use o painel web para atualizar.',
             'date_invalid' => 'Formato de data inválido. Use AAAA-MM-DD.',
             'time_invalid' => 'Horário inválido. Use HH:MM (24h).',
             'missing_date' => 'Não tenho a data registrada. Responda 1 para começar de novo.',
             'slot_taken' => 'Esse horário já está reservado. Tente outro horário ou dia.',
+            'no_slots' => 'Não há horários disponíveis para :date. Escolha outro dia.',
+            'invalid_option' => "Opção inválida. Escolha um número da lista.\n:options",
             'confirmed' => 'Pronto! Seu horário está marcado para :date às :time em nome de :name.',
         ],
     ];
@@ -98,18 +104,43 @@ class ConversationFlowService
             return $this->message('date_invalid', $language, $business->name);
         }
 
+        $availableSlots = $this->availableSlots($business, $text);
+
+        if (empty($availableSlots)) {
+            $state->update([
+                'current_step' => 'awaiting_date',
+                'payload' => [],
+            ]);
+
+            return $this->message('no_slots', $language, $business->name, [
+                ':date' => $text,
+            ]);
+        }
+
         $state->update([
             'current_step' => 'awaiting_time',
-            'payload' => ['date' => $text],
+            'payload' => ['date' => $text, 'slots' => $availableSlots],
         ]);
 
-        return $this->message('ask_time', $language, $business->name);
+        return $this->message('ask_time_options', $language, $business->name, [
+            ':date' => $text,
+            ':options' => $this->formatOptionsList($availableSlots),
+        ]);
     }
 
     private function handleTimeStep(Business $business, ConversationState $state, string $text, string $displayName, string $language, string $channel): string
     {
-        if (!$this->isValidTime($text)) {
-            return $this->message('time_invalid', $language, $business->name);
+        $slots = $state->payload['slots'] ?? [];
+        $selectedTime = null;
+
+        if ($this->isNumericOption($text) && isset($slots[(int) $text - 1])) {
+            $selectedTime = $slots[(int) $text - 1];
+        } elseif ($this->isValidTime($text) && in_array($text, $slots, true)) {
+            $selectedTime = $text;
+        } else {
+            return $this->message('invalid_option', $language, $business->name, [
+                ':options' => $this->formatOptionsList($slots),
+            ]);
         }
 
         $date = $state->payload['date'] ?? null;
@@ -121,7 +152,7 @@ class ConversationFlowService
 
         $slotTaken = Appointment::where('business_id', $business->id)
             ->whereDate('date', $date)
-            ->whereTime('time', $text)
+            ->whereTime('time', $selectedTime)
             ->where('status', '!=', 'canceled')
             ->exists();
 
@@ -134,7 +165,7 @@ class ConversationFlowService
             'customer_name' => $displayName,
             'customer_phone' => $state->customer_phone,
             'date' => $date,
-            'time' => $text,
+            'time' => $selectedTime,
             'status' => 'pending',
             'contact_channel' => $channel,
             'contact_identifier' => $state->customer_phone,
@@ -148,7 +179,7 @@ class ConversationFlowService
 
         return $this->message('confirmed', $language, $business->name, [
             ':date' => $date,
-            ':time' => $text,
+            ':time' => $selectedTime,
             ':name' => $displayName,
         ]);
     }
@@ -202,5 +233,47 @@ class ConversationFlowService
         } catch (\Exception) {
             return false;
         }
+    }
+
+    private function availableSlots(Business $business, string $date): array
+    {
+        $timezone = $business->timezone ?: 'America/Caracas';
+        $start = Carbon::parse($date . ' 09:00', $timezone);
+        $end = Carbon::parse($date . ' 17:00', $timezone);
+
+        $bookedTimes = Appointment::where('business_id', $business->id)
+            ->whereDate('date', $date)
+            ->where('status', '!=', 'canceled')
+            ->pluck('time')
+            ->map(fn ($time) => Carbon::parse($time)->format('H:i'))
+            ->all();
+
+        $available = [];
+
+        for ($slot = $start->copy(); $slot->lte($end); $slot->addMinutes(30)) {
+            $formatted = $slot->format('H:i');
+
+            if (!in_array($formatted, $bookedTimes, true)) {
+                $available[] = $formatted;
+            }
+        }
+
+        return $available;
+    }
+
+    private function formatOptionsList(array $slots): string
+    {
+        $lines = [];
+
+        foreach ($slots as $index => $slot) {
+            $lines[] = ($index + 1) . ') ' . $slot;
+        }
+
+        return implode("\n", $lines);
+    }
+
+    private function isNumericOption(string $text): bool
+    {
+        return ctype_digit($text) && (int) $text > 0;
     }
 }
