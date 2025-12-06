@@ -32,3 +32,32 @@ Si recibes un error similar al de la captura (`ENOENT` al buscar `package.json`)
 ## Acceso al panel
 - Ruta de login: `appointments/public/login` (o `/login` si sirves la app desde la raíz del proyecto Laravel).
 - Usuario sembrado: `admin@example.com` / `password` (creado por `php artisan migrate --seed`).
+
+## Levantar el proyecto Laravel completo (API + panel + recordatorios)
+1. Entra a `appointments/` y obtén dependencias:
+   ```bash
+   cd appointments
+   composer install
+   npm install
+   ```
+2. Copia `.env.example` a `.env`, genera la APP_KEY y coloca credenciales de DB y de los canales (WhatsApp Cloud, Telegram, Messenger). Ejemplo:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+3. Aplica migraciones y seed inicial (crea el usuario y el negocio de prueba):
+   ```bash
+   php artisan migrate --seed
+   ```
+4. Arranca servicios para uso diario:
+   ```bash
+   php artisan serve   # expone dashboard y webhooks
+   npm run dev         # assets del login/dashboard
+   php artisan schedule:run   # añade a cron para los recordatorios diarios
+   ```
+5. Webhooks activos tras el arranque (siguiendo los cambios actuales del branch):
+   - WhatsApp Cloud: `POST /api/whatsapp/webhook` + `GET /api/whatsapp/webhook` (verify token).
+   - Telegram: `POST /api/telegram/webhook`.
+   - Messenger: `POST /api/messenger/webhook` + `GET /api/messenger/webhook` (verify token).
+
+Si venías de otro branch/PR con conflictos, estos pasos reflejan el estado actual y deben prevalecer al desplegar.

@@ -30,20 +30,39 @@ Primer corte funcional siguiendo la visión de “WhatsApp primero”. El flujo 
 - El negocio puede ver y actualizar el estado de los turnos del día en `/dashboard`.
 - El panel permite filtrar turnos por cualquier fecha, mostrando por defecto los turnos del día en curso.
 
-### Configuración
+### Puesta en marcha rápida (API + panel + recordatorios)
 
-1. Copia `.env.example` a `.env` y agrega las credenciales de WhatsApp Cloud:
-   - `WHATSAPP_VERIFY_TOKEN`
-   - `WHATSAPP_TOKEN`
-   - `WHATSAPP_PHONE_NUMBER_ID`
-   - (opcional) `TELEGRAM_BOT_TOKEN` para responder también por Telegram en `POST /api/telegram/webhook`
-   - (opcional) `MESSENGER_VERIFY_TOKEN`, `MESSENGER_PAGE_ACCESS_TOKEN` y `MESSENGER_PAGE_ID` si quieres exponer `POST /api/messenger/webhook` para Facebook Messenger
-2. Ejecuta migraciones y seed (crea usuario admin@example.com / password y un negocio de prueba “Venezuela Tecnológica”):
+1. Instala dependencias de PHP y JavaScript desde la carpeta del proyecto (`appointments/`):
+   ```bash
+   composer install
+   npm install
+   ```
+2. Crea tu archivo de entorno y configura los tokens/IDs de los canales que vayas a usar:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   Variables claves:
+   - `APP_URL` con el dominio/host donde servirás la app.
+   - `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`.
+   - (opcional) `TELEGRAM_BOT_TOKEN` para `POST /api/telegram/webhook`.
+   - (opcional) `MESSENGER_VERIFY_TOKEN`, `MESSENGER_PAGE_ACCESS_TOKEN`, `MESSENGER_PAGE_ID` para `POST /api/messenger/webhook`.
+3. Prepara la base de datos y los datos de prueba (usuario admin@example.com/password y negocio “Venezuela Tecnológica”):
    ```bash
    php artisan migrate --seed
    ```
-3. Expone el webhook en Meta Developers apuntando a `https://tu-dominio.com/api/whatsapp/webhook` con el mismo `WHATSAPP_VERIFY_TOKEN`.
-4. Inicia sesión en `/login` con las credenciales sembradas (`admin@example.com` / `password`) y visita `/dashboard` para ver y actualizar los turnos de hoy.
+4. Levanta la aplicación web y el frontend de Blade/Tailwind:
+   ```bash
+   php artisan serve   # expone el panel y los webhooks
+   npm run dev         # recompila assets para el login y dashboard
+   ```
+5. Programa recordatorios diarios y, si lo prefieres, ejecútalos manualmente:
+   ```bash
+   php artisan schedule:run               # úsalo en cron: * * * * * php artisan schedule:run
+   php artisan appointments:send-reminders # para forzar recordatorios en el momento
+   ```
+6. Expón el webhook en Meta Developers apuntando a `https://tu-dominio.com/api/whatsapp/webhook` con el mismo `WHATSAPP_VERIFY_TOKEN`.
+7. Inicia sesión en `/login` con las credenciales sembradas (`admin@example.com` / `password`) y visita `/dashboard` para ver y actualizar los turnos del día (el filtro siempre arranca en la fecha actual).
 
 ### Flujo conversacional mínimo (Cloud API)
 
