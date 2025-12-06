@@ -44,7 +44,7 @@ Primer corte funcional siguiendo la visión de “WhatsApp primero”. El flujo 
 
 ### Flujo conversacional mínimo (Cloud API)
 
-- Cualquier mensaje: muestra menú: “1️⃣ para pedir un turno / 2️⃣ ver o cancelar”.
+- Cualquier mensaje: muestra menú: “1️⃣ para pedir un turno / 2️⃣ ver o cancelar”. El bot responde automáticamente en español, inglés o portugués según el idioma detectado en el mensaje.
 - “1” → pide fecha (AAAA-MM-DD) → pide hora (HH:MM) → crea cita si el slot está libre.
 - “2” → responde que el panel web es la vía actual para ver/cancelar.
 
