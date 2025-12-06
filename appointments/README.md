@@ -21,6 +21,24 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## Bot de WhatsApp (Venezuela Tecnológica)
+
+Se añadió un bot básico usando [`whatsapp-web.js`](https://github.com/pedroslopez/whatsapp-web.js) para responder mensajes iniciales de clientes.
+
+### Configuración rápida
+
+1. Instala Node.js 18+ y desde la carpeta del proyecto (`appointments/`) ejecuta `npm install` para obtener las dependencias (`whatsapp-web.js` y `qrcode-terminal`). Si corres el comando desde una carpeta superior verás un error `ENOENT` porque no encontrará `package.json`.
+2. Ejecuta `npm run bot:whatsapp` (se inicia en modo headless con `puppeteer`).
+3. Escanea el código QR que se mostrará en la terminal con la aplicación de WhatsApp para vincular la sesión. La sesión queda guardada en `storage/whatsapp` para que no tengas que re-escanear en futuros arranques.
+4. Opcional: borra el contenido de `storage/whatsapp` si necesitas reiniciar el enlace.
+
+### Respuestas disponibles
+
+- `hola`, `hola!`, `hola bot`: saludo inicial.
+- `cita` o `citas`: instrucciones para agendar una cita.
+- `help` o `ayuda`: muestra los comandos disponibles.
+- Cualquier otro mensaje recibe una confirmación de recepción.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
