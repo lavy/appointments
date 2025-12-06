@@ -1,8 +1,10 @@
-import { Client, LocalAuth } from 'whatsapp-web.js';
+import whatsapp from 'whatsapp-web.js';
 import qrcode from 'qrcode-terminal';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+
+const { Client, LocalAuth } = whatsapp;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,7 +26,7 @@ client.on('qr', (qr) => {
 });
 
 client.on('ready', () => {
-    console.log('🤖 Bot de WhatsApp listo.');
+    console.log('🤖 Bot de WhatsApp listo. Comandos: "hola", "cita", "ayuda".');
 });
 
 client.on('auth_failure', (message) => {

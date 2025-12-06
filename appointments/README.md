@@ -31,7 +31,6 @@ Se añadió un bot básico usando [`whatsapp-web.js`](https://github.com/pedrosl
 3. Escanea el código QR que se mostrará en la terminal con la aplicación de WhatsApp para vincular la sesión. La sesión queda guardada en `storage/whatsapp` para que no tengas que re-escanear en futuros arranques.
 4. Opcional: borra el contenido de `storage/whatsapp` si necesitas reiniciar el enlace.
 
-
 ### Respuestas disponibles
 
 - `hola`, `hola!`, `hola bot`: saludo inicial.
