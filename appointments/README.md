@@ -21,6 +21,57 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## MVP: turnos por WhatsApp + panel web
+
+Primer corte funcional siguiendo la visión de “WhatsApp primero”. El flujo completo es:
+
+- WhatsApp Cloud API envía mensajes entrantes al webhook `POST /api/whatsapp/webhook`.
+- Laravel identifica el cliente y lo guía por un flujo lineal: menú (1 = pedir turno), pedir fecha, pedir hora, verificar disponibilidad, crear la cita y confirmar por WhatsApp.
+- El negocio puede ver y actualizar el estado de los turnos del día en `/dashboard`.
+
+### Configuración
+
+1. Copia `.env.example` a `.env` y agrega las credenciales de WhatsApp Cloud:
+   - `WHATSAPP_VERIFY_TOKEN`
+   - `WHATSAPP_TOKEN`
+   - `WHATSAPP_PHONE_NUMBER_ID`
+2. Ejecuta migraciones y seed (crea usuario admin@example.com / password y un negocio de prueba “Venezuela Tecnológica”):
+   ```bash
+   php artisan migrate --seed
+   ```
+3. Expone el webhook en Meta Developers apuntando a `https://tu-dominio.com/api/whatsapp/webhook` con el mismo `WHATSAPP_VERIFY_TOKEN`.
+4. Inicia sesión en la app (usa tu stack de auth preferido o crea manualmente el login) y visita `/dashboard` para ver y actualizar los turnos de hoy.
+
+### Flujo conversacional mínimo (Cloud API)
+
+- Cualquier mensaje: muestra menú: “1️⃣ para pedir un turno / 2️⃣ ver o cancelar”.
+- “1” → pide fecha (AAAA-MM-DD) → pide hora (HH:MM) → crea cita si el slot está libre.
+- “2” → responde que el panel web es la vía actual para ver/cancelar.
+
+### Panel web
+
+- Ruta: `/dashboard` (requiere middleware `auth`).
+- Lista los turnos del día del negocio asociado al usuario.
+- Selector para cambiar estado: pending, confirmed, completed o canceled.
+
+## Bot de WhatsApp (Venezuela Tecnológica)
+
+Se mantiene el bot local con [`whatsapp-web.js`](https://github.com/pedroslopez/whatsapp-web.js) para pruebas rápidas vía WhatsApp Web.
+
+### Configuración rápida
+
+1. Instala Node.js 18+ y desde la carpeta del proyecto (`appointments/`) ejecuta `npm install` para obtener las dependencias (`whatsapp-web.js` y `qrcode-terminal`). Si corres el comando desde una carpeta superior verás un error `ENOENT` porque no encontrará `package.json`.
+2. Ejecuta `npm run bot:whatsapp` (se inicia en modo headless con `puppeteer`).
+3. Escanea el código QR que se mostrará en la terminal con la aplicación de WhatsApp para vincular la sesión. La sesión queda guardada en `storage/whatsapp` para que no tengas que re-escanear en futuros arranques.
+4. Opcional: borra el contenido de `storage/whatsapp` si necesitas reiniciar el enlace.
+
+### Respuestas disponibles
+
+- `hola`, `hola!`, `hola bot`: saludo inicial.
+- `cita` o `citas`: instrucciones para agendar una cita.
+- `help` o `ayuda`: muestra los comandos disponibles.
+- Cualquier otro mensaje recibe una confirmación de recepción.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
