@@ -12,6 +12,7 @@ class ConversationState extends Model
     protected $fillable = [
         'business_id',
         'customer_phone',
+        'contact_channel',
         'current_step',
         'payload',
     ];
