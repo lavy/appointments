@@ -1,9 +1,11 @@
 /.phpunit.cache
 /node_modules
+/.wwebjs_cache
 /public/build
 /public/hot
 /public/storage
 /storage/*.key
+/storage/whatsapp
 /vendor
 .env
 .env.backup

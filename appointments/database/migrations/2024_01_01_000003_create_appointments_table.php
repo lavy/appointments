@@ -18,7 +18,16 @@ return new class extends Migration
             $table->string('customer_phone');
             $table->date('date');
             $table->time('time');
-            $table->enum('status', ['pending', 'confirmed', 'completed', 'canceled'])->default('pending');
+            $table->enum('status', ['pre_reserved', 'pending_review', 'confirmed', 'completed', 'canceled', 'expired'])->default('pre_reserved');
+            $table->timestamp('pre_reserved_until')->nullable();
+            $table->string('contact_channel')->nullable();
+            $table->string('contact_identifier')->nullable();
+            $table->string('language', 5)->default('es');
+            $table->timestamp('reminder_sent_at')->nullable();
+            $table->string('payment_proof_path')->nullable();
+            $table->timestamp('payment_submitted_at')->nullable();
+            $table->foreignId('payment_reviewed_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('payment_reviewed_at')->nullable();
             $table->timestamps();
         });
     }

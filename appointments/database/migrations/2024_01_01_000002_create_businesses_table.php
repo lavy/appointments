@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('phone')->unique();
             $table->string('address')->nullable();
             $table->string('timezone')->default('America/Caracas');
+            $table->text('payment_instructions')->nullable();
             $table->timestamps();
         });
     }

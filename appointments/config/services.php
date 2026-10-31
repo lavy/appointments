@@ -37,4 +37,14 @@ return [
         'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
     ],
 
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+    ],
+
+    'messenger' => [
+        'verify_token' => env('MESSENGER_VERIFY_TOKEN'),
+        'page_access_token' => env('MESSENGER_PAGE_ACCESS_TOKEN'),
+        'page_id' => env('MESSENGER_PAGE_ID'),
+    ],
+
 ];

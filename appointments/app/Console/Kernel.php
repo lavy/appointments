@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('appointments:send-reminders')->daily();
+        $schedule->command('appointments:expire-pre-reservations')->everyTenMinutes();
     }
 
     /**
